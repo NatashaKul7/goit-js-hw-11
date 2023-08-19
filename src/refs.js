@@ -1,6 +1,5 @@
-const refs = {
+export default {
     form: document.getElementById('search-form'),
     galleryCard: document.querySelector('.gallery'),
+    loadMore: document.querySelector('.load-more'),
 }
-
-export { refs };
