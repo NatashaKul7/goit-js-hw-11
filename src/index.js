@@ -1,65 +1,39 @@
-import { onGetImage } from './api/api';
+//// async/await functions + infinity scroll
+
+
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 
+import { onGetImage } from './api/api';
 import refs from "./refs";
 
 refs.form.addEventListener('submit', onSubmit);
-refs.loadMore.addEventListener('click', onLoadMore);
 
 let page = 1;
+let value = '';
+let totalHitsImg = 0;
 
-function onSubmit(e) {
+async function onSubmit(e) {
   e.preventDefault();
-  const value = e.currentTarget.elements.searchQuery.value.trim();
+  page = 1;
+  clearContent();
+
+  value = e.currentTarget.elements.searchQuery.value.trim();
   if (!value) 
     return Notify.info('Sorry, there are no images matching your search query. Please try again.');
 
-
-
-  onGetImage(page, value).then((arr) => {
-    refs.galleryCard.innerHTML = '';
-    refs.galleryCard.insertAdjacentHTML('beforeend', createMarkup(arr.data.hits));
-
-    console.log(arr.data);
-    refs.form.reset();
-
-    
-    if (arr.data.totalHits <= arr.data.totalHits & arr.data.totalHits !== 0 ) {
-    Notify.success(`Hooray! We found ${arr.data.totalHits} images.`);
-      refs.loadMore.classList.remove('hidden');
-  }
-
-    if (arr.data.totalHits === 0) {
-      refs.loadMore.classList.add('hidden');
-      return Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-    };
-   
-  }).catch(error => 
-    Notify.failure('Sorry, there are no images matching your search query. Please try again.'));
-  
+  await takeImage();
 }; 
 
-
-function onLoadMore() {
-  page += 1;
-
-  onGetImage(page).then((arr) => {
-    refs.galleryCard.insertAdjacentHTML('beforeend', createMarkup(arr.data.hits));
-
-    /// шось не працює
-
-    if (arr.data.hits >= arr.data.totalHits) { 
-      refs.loadMore.classList.add('hidden');
-      Notify.failure("We're sorry, but you've reached the end of search results.")
-    }
-  });
-};
+function clearContent() { 
+  totalHitsImg = 0;
+  refs.spanLimit.textContent = '';
+  refs.galleryCard.innerHTML = '';
+}
 
 
-function createMarkup(hits) {
-    console.log(hits);
+ function createMarkup(hits) {
     return hits.map(
     (
     { webformatURL, largeImageURL, tags, likes, views, comments, downloads }
@@ -90,14 +64,161 @@ function createMarkup(hits) {
 };
 
 
-let gallerySimple = new SimpleLightbox('.gallery a',
+async function takeImage() {
+  try {
+    const arr = await onGetImage(page, value);
+    refs.form.reset();
+    
+    if (arr.data.totalHits) {
+      Notify.success(`Hooray! We found ${arr.data.totalHits} images.`);
+    }
+
+    if (arr.data.totalHits === 0) {
+      return Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+    };
+
+    for (let i = 0; i < arr.data.hits.length; i++) {
+      const newImage = createMarkup([arr.data.hits[i]]);
+      refs.galleryCard.insertAdjacentHTML('beforeend', newImage);
+      lightbox.refresh();
+    }
+    page += 1;
+   
+    totalHitsImg += arr.data.hits.length;
+
+    if (totalHitsImg >= arr.data.totalHits) {
+      refs.spanLimit.textContent = "We're sorry, but you've reached the end of search results."
+    }
+  } catch (error) {
+  Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+}}
+
+
+window.addEventListener('scroll', () => {
+  if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight) {
+    takeImage();
+  };
+});
+
+let lightbox = new SimpleLightbox('.gallery a',
     {
         captionDelay: 250,
-    });
-gallerySimple.on('show.simplelightbox');
-gallerySimple.refresh();
+  });
+    
 
 
 
 
 
+
+  /// functions + button loadMore
+
+
+//   import { Notify } from 'notiflix/build/notiflix-notify-aio';
+// import SimpleLightbox from "simplelightbox";
+// import "simplelightbox/dist/simple-lightbox.min.css";
+
+// import { onGetImage } from './api/api';
+// import refs from "./refs";
+
+// refs.form.addEventListener('submit', onSubmit);
+// refs.loadMore.addEventListener('click', onLoadMore);
+
+// let page = 1;
+// let value = '';
+// let totalHitsImg = 0;
+// let hits = 0;
+
+
+// function onSubmit(e) {
+//   e.preventDefault();
+//   page = 1;
+//   clearComtent();
+
+//   value = e.currentTarget.elements.searchQuery.value.trim();
+//   if (!value) 
+//     return Notify.info('Sorry, there are no images matching your search query. Please try again.');
+
+//   takeImage();
+
+// }; 
+
+// function clearComtent() { 
+//   totalHitsImg = 0;
+//   refs.spanLimit.textContent = '';
+//   refs.galleryCard.innerHTML = '';
+// }
+
+
+// function onLoadMore() {
+//   page += 1;
+
+//   takeImage();
+// };
+
+
+
+//  function createMarkup(hits) {
+//     return hits.map(
+//     (
+//     { webformatURL, largeImageURL, tags, likes, views, comments, downloads }
+//     ) => `<div class="photo-card">
+//   <a href="${largeImageURL}">
+//     <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+//     </a>
+//   <div class="info">
+//     <p class="info-item">
+//       <b>Likes:</b>
+//       ${likes}
+//     </p>
+//     <p class="info-item">
+//       <b>Views:</b>
+//       ${views}
+//     </p>
+//     <p class="info-item">
+//       <b>Comments:</b>
+//       ${comments}
+//     </p>
+//     <p class="info-item">
+//       <b>Downloads:</b>
+//       ${downloads}
+//     </p>
+//   </div>
+// </div>`)
+//         .join('');
+// };
+
+
+// function takeImage() { 
+//  onGetImage(page, value).then((arr) => {
+//    refs.form.reset();
+   
+//    refs.galleryCard.insertAdjacentHTML('beforeend', createMarkup(arr.data.hits));
+//    lightbox.refresh();
+    
+//     if (arr.data.totalHits) {
+//     Notify.success(`Hooray! We found ${arr.data.totalHits} images.`);
+//       refs.loadMore.classList.remove('hidden');
+//   }
+
+//     if (arr.data.totalHits === 0) {
+//       refs.loadMore.classList.add('hidden');
+//       return Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+//    };
+   
+//    totalHitsImg += arr.data.hits.length;
+
+//     if (totalHitsImg >= arr.data.totalHits) { 
+//     refs.loadMore.classList.add('hidden');
+//     refs.spanLimit.textContent = "We're sorry, but you've reached the end of search results."
+//     }
+   
+   
+//   }).catch(error => 
+//     Notify.failure('Sorry, there are no images matching your search query. Please try again.'));
+// }
+
+// let lightbox = new SimpleLightbox('.gallery a',
+//     {
+//         captionDelay: 250,
+//     });
