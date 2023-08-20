@@ -14,7 +14,7 @@ let page = 1;
 let value = '';
 let totalHitsImg = 0;
 
-async function onSubmit(e) {
+function onSubmit(e) {
   e.preventDefault();
   page = 1;
   clearContent();
@@ -23,7 +23,7 @@ async function onSubmit(e) {
   if (!value) 
     return Notify.info('Sorry, there are no images matching your search query. Please try again.');
 
-  await takeImage();
+takeImage();
 }; 
 
 function clearContent() { 
