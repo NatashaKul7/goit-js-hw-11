@@ -1,6 +1,3 @@
-//// async/await functions + infinity scroll
-
-
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
@@ -36,29 +33,27 @@ function clearContent() {
 
 async function takeImage() {
   try {
-    const responce = await onGetImage(page, value);
+    const response = await onGetImage(page, value);
     refs.form.reset();
-    console.log(responce);
- 
     
-    if (responce.totalHits) {
-      Notify.success(`Hooray! We found ${responce.totalHits} images.`);
+    if (response.totalHits) {
+      Notify.success(`Hooray! We found ${response.totalHits} images.`);
     }
 
-    if (responce.totalHits === 0) {
+    if (response.totalHits === 0) {
       return Notify.failure('Sorry, there are no images matching your search query. Please try again.');
     };
 
-    for (let i = 0; i < responce.hits.length; i++) {
-      const newImage = createMarkup([responce.hits[i]]);
+    for (let i = 0; i < response.hits.length; i++) {
+      const newImage = createMarkup([response.hits[i]]);
       refs.galleryCard.insertAdjacentHTML('beforeend', newImage);
       lightbox.refresh();
     }
     page += 1;
    
-    totalHitsImg += responce.hits.length;
+    totalHitsImg += response.hits.length;
 
-    if (totalHitsImg >= responce.totalHits) {
+    if (totalHitsImg >= response.totalHits) {
       refs.spanLimit.textContent = "We're sorry, but you've reached the end of search results."
     }
   } catch (error) {

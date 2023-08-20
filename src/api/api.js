@@ -1,13 +1,10 @@
 import axios from "axios";
 const BASE_URL = 'https://pixabay.com/api/';
-// const API_KEY = '38889526-086820321c5fcbdbccd359080'; 
-
-const API_KEY = '38613444-415ea31856756f0ffc19b62a0'; 
-
+const API_KEY = '38889526-086820321c5fcbdbccd359080'; 
 
 
 async function onGetImage(page = 1, value) {
-    console.log(axios.defaults);
+
          axios.defaults.params = {
              key: API_KEY,
              q: value,
@@ -17,10 +14,9 @@ async function onGetImage(page = 1, value) {
              page,
              per_page: 40,
          };
-         const responce = await axios.get(BASE_URL);
-     return responce.data;
-     
-     
+    
+         const response = await axios.get(BASE_URL);
+     return response.data;
 }
  
 export { onGetImage } 
