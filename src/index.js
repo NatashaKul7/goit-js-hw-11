@@ -7,6 +7,7 @@ import "simplelightbox/dist/simple-lightbox.min.css";
 
 import { onGetImage } from './api/api';
 import refs from "./refs";
+import { createMarkup } from './markup';
 
 refs.form.addEventListener('submit', onSubmit);
 
@@ -33,60 +34,31 @@ function clearContent() {
 }
 
 
- function createMarkup(hits) {
-    return hits.map(
-    (
-    { webformatURL, largeImageURL, tags, likes, views, comments, downloads }
-    ) => `<div class="photo-card">
-  <a href="${largeImageURL}">
-    <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-    </a>
-  <div class="info">
-    <p class="info-item">
-      <b>Likes:</b>
-      ${likes}
-    </p>
-    <p class="info-item">
-      <b>Views:</b>
-      ${views}
-    </p>
-    <p class="info-item">
-      <b>Comments:</b>
-      ${comments}
-    </p>
-    <p class="info-item">
-      <b>Downloads:</b>
-      ${downloads}
-    </p>
-  </div>
-</div>`)
-        .join('');
-};
-
-
 async function takeImage() {
   try {
-    const arr = await onGetImage(page, value);
+    const responce = await onGetImage(page, value);
     refs.form.reset();
+    console.log(responce);
+ 
     
-    if (arr.data.totalHits) {
-      Notify.success(`Hooray! We found ${arr.data.totalHits} images.`);
+    if (responce.totalHits) {
+      Notify.success(`Hooray! We found ${responce.totalHits} images.`);
     }
 
-    if (arr.data.totalHits === 0) {
+    if (responce.totalHits === 0) {
       return Notify.failure('Sorry, there are no images matching your search query. Please try again.');
     };
 
-    for (let i = 0; i < arr.data.hits.length; i++) {
-      const newImage = createMarkup([arr.data.hits[i]]);
+    for (let i = 0; i < responce.hits.length; i++) {
+      const newImage = createMarkup([responce.hits[i]]);
       refs.galleryCard.insertAdjacentHTML('beforeend', newImage);
       lightbox.refresh();
     }
     page += 1;
    
-    totalHitsImg += arr.data.hits.length;
+    totalHitsImg += responce.hits.length;
 
-    if (totalHitsImg >= arr.data.totalHits) {
+    if (totalHitsImg >= responce.totalHits) {
       refs.spanLimit.textContent = "We're sorry, but you've reached the end of search results."
     }
   } catch (error) {
